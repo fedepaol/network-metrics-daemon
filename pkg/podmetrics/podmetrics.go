@@ -24,7 +24,7 @@ var (
 	// pod
 	NetAttachDefPerPod = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "network_attachment_definition_enabled_instance_up",
+			Name: "network_attachment_definition_per_pod",
 			Help: "Metric to identify clusters with network attachment definition enabled instances.",
 		}, []string{"pod",
 			"namespace",
