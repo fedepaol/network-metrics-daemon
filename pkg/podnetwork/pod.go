@@ -31,8 +31,6 @@ type DNS struct {
 // Network represents the link between the pod,
 // the interface name and the network attachment definition name
 type Network struct {
-	PodName     string
-	Namespace   string
 	Interface   string
 	NetworkName string
 }
@@ -52,8 +50,6 @@ func Get(pod *corev1.Pod) ([]Network, error) {
 
 	res := make([]Network, len(statuses))
 	for i, s := range statuses {
-		res[i].PodName = pod.Name
-		res[i].Namespace = pod.Namespace
 		res[i].Interface = s.Interface
 		res[i].NetworkName = s.Name
 	}

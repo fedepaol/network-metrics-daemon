@@ -1,6 +1,9 @@
 package podmetrics
 
 import (
+	"sync"
+
+	"github.com/openshift/network-metrics/pkg/podnetwork"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -10,14 +13,13 @@ const (
 	metricsIncVal       int = 1
 )
 
-// Action represents the action we want to do
-// with a given pod's network metric.
-type Action int
+type podKey struct {
+	name      string
+	namespace string
+}
 
-const (
-	Adding Action = iota
-	Deleting
-)
+var podNetworks = make(map[podKey][]podnetwork.Network)
+var mtx sync.Mutex
 
 var (
 	// NetAttachDefPerPod represent the network attachment definitions bound to a given
@@ -32,18 +34,39 @@ var (
 			"nad"})
 )
 
-//UpdateNetAttachDefInstanceMetrics ...
-func UpdateNetAttachDefInstanceMetrics(podName, namespace, nicName, networkName string, action Action) {
-	labels := prometheus.Labels{
-		"pod":       podName,
-		"namespace": namespace,
-		"interface": nicName,
-		"nad":       networkName,
+//UpdateForPod ...
+func UpdateForPod(podName, namespace string, networks []podnetwork.Network) {
+	for _, n := range networks {
+		labels := prometheus.Labels{
+			"pod":       podName,
+			"namespace": namespace,
+			"interface": n.Interface,
+			"nad":       n.NetworkName,
+		}
+		NetAttachDefPerPod.With(labels).Add(0)
+	}
+	mtx.Lock()
+	defer mtx.Unlock()
+	podNetworks[podKey{podName, namespace}] = networks
+}
+
+func DeleteAllForPod(podName, namespace string) {
+	mtx.Lock()
+	defer mtx.Unlock()
+	nets, ok := podNetworks[podKey{podName, namespace}]
+	if !ok {
+		return
 	}
 
-	if action == Adding {
-		NetAttachDefPerPod.With(labels).Add(0)
-	} else {
+	delete(podNetworks, podKey{podName, namespace})
+
+	for _, n := range nets {
+		labels := prometheus.Labels{
+			"pod":       podName,
+			"namespace": namespace,
+			"interface": n.Interface,
+			"nad":       n.NetworkName,
+		}
 		NetAttachDefPerPod.Delete(labels)
 	}
 }

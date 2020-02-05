@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"time"
 
-	corev1 "k8s.io/api/core/v1"
+	"github.com/openshift/network-metrics/pkg/podmetrics"
+
+	"github.com/openshift/network-metrics/pkg/podnetwork"
+
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	coreinformers "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
-	typedcorev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	corelisters "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
-	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog"
 )
@@ -37,7 +38,6 @@ type Controller struct {
 	podsSynced    cache.InformerSynced
 
 	workqueue workqueue.RateLimitingInterface
-	recorder  record.EventRecorder
 }
 
 // NewController returns a new sample controller
@@ -45,33 +45,25 @@ func New(
 	kubeclientset kubernetes.Interface,
 	podsInformer coreinformers.PodInformer) *Controller {
 
-	// Create event broadcaster
-	// Add sample-controller types to the default Kubernetes Scheme so Events can be
-	// logged for sample-controller types.
-	// TODO utilruntime.Must(samplescheme.AddToScheme(scheme.Scheme))
-	klog.V(4).Info("Creating event broadcaster")
-	eventBroadcaster := record.NewBroadcaster()
-	eventBroadcaster.StartLogging(klog.Infof)
-	eventBroadcaster.StartRecordingToSink(&typedcorev1.EventSinkImpl{Interface: kubeclientset.CoreV1().Events("")})
-	recorder := eventBroadcaster.NewRecorder(scheme.Scheme, corev1.EventSource{Component: controllerAgentName})
-
 	controller := &Controller{
 		kubeclientset: kubeclientset,
 
 		podsLister: podsInformer.Lister(),
 		podsSynced: podsInformer.Informer().HasSynced,
 		workqueue:  workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Pods"),
-		recorder:   recorder,
 	}
 
 	klog.Info("Setting up event handlers")
-	// Set up an event handler for when Foo resources change
 
-	// TODO only my node
-
+	// TODO check if can be done only for the current node
 	podsInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: controller.enqueuePod,
 		UpdateFunc: func(old, new interface{}) {
+			newPod := new.(*v1.Pod)
+			oldPod := old.(*v1.Pod)
+			if newPod.Annotations[podnetwork.Status] == oldPod.Annotations[podnetwork.Status] {
+				return
+			}
 			controller.enqueuePod(new)
 		},
 		DeleteFunc: controller.enqueuePod,
@@ -89,7 +81,7 @@ func (c *Controller) Run(threadiness int, stopCh <-chan struct{}) error {
 	defer c.workqueue.ShutDown()
 
 	// Start the informer factories to begin populating the informer caches
-	klog.Info("Starting Foo controller")
+	klog.Info("Starting pod controller")
 
 	// Wait for the caches to be synced before starting workers
 	klog.Info("Waiting for informer caches to sync")
@@ -165,26 +157,25 @@ func (c *Controller) podHandler(key string) error {
 	// Get the Pod resource with this namespace/name
 	pod, err := c.podsLister.Pods(namespace).Get(name)
 	if err != nil {
-		// The Foo resource may no longer exist, in which case we stop
-		// processing.
 		if errors.IsNotFound(err) {
-			// TODO Handle deletion here
-			utilruntime.HandleError(fmt.Errorf("foo '%s' in work queue no longer exists", key))
+			podmetrics.DeleteAllForPod(name, namespace)
 			return nil
 		}
 
 		return err
 	}
 
-	klog.Infof("Received pod '%v'", pod)
-
-	// TODO Business logic here
-	// err = c.updateFooStatus(foo, deployment)
+	klog.Infof("Received pod '%s'", pod.Name)
+	networks, err := podnetwork.Get(pod)
 	if err != nil {
 		return err
 	}
 
-	// c.recorder.Event(foo, corev1.EventTypeNormal, SuccessSynced, MessageResourceSynced)
+	// As an interface might have been removed from the pod (or changed)
+	// and eventually re-add them, as the chance of having the networks changed is
+	// pretty low
+	podmetrics.DeleteAllForPod(name, namespace)
+	podmetrics.UpdateForPod(pod.Name, pod.Namespace, networks)
 	return nil
 }
 
@@ -196,5 +187,4 @@ func (c *Controller) enqueuePod(obj interface{}) {
 		return
 	}
 	c.workqueue.Add(key)
-
 }

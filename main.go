@@ -18,9 +18,13 @@ package main
 
 import (
 	"flag"
+	"net/http"
 	"time"
 
 	"github.com/openshift/network-metrics/pkg/controller"
+	"github.com/openshift/network-metrics/pkg/podmetrics"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	kubeinformers "k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -58,6 +62,7 @@ func main() {
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, time.Second*30)
 
 	ctrl := controller.New(kubeClient, kubeInformerFactory.Core().V1().Pods())
+	serveNetworkMetrics(":9091")
 
 	// notice that there is no need to run Start methods in a separate goroutine. (i.e. go kubeInformerFactory.Start(stopCh)
 	// Start method is non-blocking and runs all registered informers in a dedicated goroutine.
@@ -71,4 +76,11 @@ func main() {
 func init() {
 	flag.StringVar(&kubeconfig, "kubeconfig", "", "Path to a kubeconfig. Only required if out-of-cluster.")
 	flag.StringVar(&masterURL, "master", "", "The address of the Kubernetes API server. Overrides any value in kubeconfig. Only required if out-of-cluster.")
+}
+
+func serveNetworkMetrics(metricsAddress string) {
+	prometheus.MustRegister(podmetrics.NetAttachDefPerPod)
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+	}()
 }

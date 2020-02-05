@@ -56,8 +56,6 @@ var podNetworkTests = []struct {
 		},
 		[]podnetwork.Network{
 			podnetwork.Network{
-				PodName:     "PodName",
-				Namespace:   "PodNameSpace",
 				Interface:   "eth0",
 				NetworkName: "kindnet",
 			},
@@ -75,14 +73,10 @@ var podNetworkTests = []struct {
 		},
 		[]podnetwork.Network{
 			podnetwork.Network{
-				PodName:     "MultiplePodName",
-				Namespace:   "MultiplePodNameSpace",
 				Interface:   "eth0",
 				NetworkName: "kindnet",
 			},
 			podnetwork.Network{
-				PodName:     "MultiplePodName",
-				Namespace:   "MultiplePodNameSpace",
 				Interface:   "net1",
 				NetworkName: "macvlan-conf",
 			},

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/openshift/network-metrics/pkg/podmetrics"
+	"github.com/openshift/network-metrics/pkg/podnetwork"
 	"github.com/prometheus/client_golang/prometheus/testutil"
 )
 
@@ -16,8 +17,11 @@ var podMetricsTests = []struct {
 	{
 		"twonetworks same nad",
 		func() {
-			podmetrics.UpdateNetAttachDefInstanceMetrics("podname", "namespacename", "eth0", "firstNAD", podmetrics.Adding)
-			podmetrics.UpdateNetAttachDefInstanceMetrics("podname", "namespacename", "eth1", "firstNAD", podmetrics.Adding)
+			networks := []podnetwork.Network{
+				{"eth0", "firstNAD"},
+				{"eth1", "firstNAD"},
+			}
+			podmetrics.UpdateForPod("podname", "namespacename", networks)
 		},
 		`
 			network_attachment_definition_per_pod{interface="eth0",nad="firstNAD",namespace="namespacename",pod="podname"} 0
@@ -27,8 +31,11 @@ var podMetricsTests = []struct {
 	{
 		"twonetworks different nad",
 		func() {
-			podmetrics.UpdateNetAttachDefInstanceMetrics("podname", "namespacename", "eth0", "firstNAD", podmetrics.Adding)
-			podmetrics.UpdateNetAttachDefInstanceMetrics("podname", "namespacename", "eth1", "secondNAD", podmetrics.Adding)
+			networks := []podnetwork.Network{
+				{"eth0", "firstNAD"},
+				{"eth1", "secondNAD"},
+			}
+			podmetrics.UpdateForPod("podname", "namespacename", networks)
 		},
 		`
 			network_attachment_definition_per_pod{interface="eth0",nad="firstNAD",namespace="namespacename",pod="podname"} 0
@@ -38,8 +45,12 @@ var podMetricsTests = []struct {
 	{
 		"add and delete",
 		func() {
-			podmetrics.UpdateNetAttachDefInstanceMetrics("podname", "namespacename", "eth0", "firstNAD", podmetrics.Adding)
-			podmetrics.UpdateNetAttachDefInstanceMetrics("podname", "namespacename", "eth0", "firstNAD", podmetrics.Deleting)
+			networks := []podnetwork.Network{
+				{"eth0", "firstNAD"},
+				{"eth1", "secondNAD"},
+			}
+			podmetrics.UpdateForPod("podname", "namespacename", networks)
+			podmetrics.DeleteAllForPod("podname", "namespacename")
 		},
 		`
 		`,
@@ -47,9 +58,16 @@ var podMetricsTests = []struct {
 	{
 		"two pods and delete one",
 		func() {
-			podmetrics.UpdateNetAttachDefInstanceMetrics("podname1", "namespacename", "eth0", "firstNAD", podmetrics.Adding)
-			podmetrics.UpdateNetAttachDefInstanceMetrics("podname2", "namespacename", "eth0", "firstNAD", podmetrics.Adding)
-			podmetrics.UpdateNetAttachDefInstanceMetrics("podname1", "namespacename", "eth0", "firstNAD", podmetrics.Deleting)
+			networks := []podnetwork.Network{
+				{"eth0", "firstNAD"},
+				{"eth1", "secondNAD"},
+			}
+			networks2 := []podnetwork.Network{
+				{"eth0", "firstNAD"},
+			}
+			podmetrics.UpdateForPod("podname1", "namespacename", networks)
+			podmetrics.UpdateForPod("podname2", "namespacename", networks2)
+			podmetrics.DeleteAllForPod("podname1", "namespacename")
 
 		},
 		`
