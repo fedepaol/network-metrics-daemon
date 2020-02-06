@@ -79,8 +79,20 @@ func init() {
 }
 
 func serveNetworkMetrics(metricsAddress string) {
+
 	prometheus.MustRegister(podmetrics.NetAttachDefPerPod)
+
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+
+	// Add healthzPath
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(http.StatusText(http.StatusOK)))
+	})
+
 	go func() {
-		http.Handle("/metrics", promhttp.Handler())
+		klog.Info("Serving network metrics")
+		http.ListenAndServe(metricsAddress, mux)
 	}()
 }
