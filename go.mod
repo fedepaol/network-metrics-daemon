@@ -82,10 +82,11 @@ require (
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
 	gopkg.in/yaml.v2 v2.2.8
 	honnef.co/go/tools v0.0.0-20190106161140-3f1c8253044a
-	k8s.io/api v0.0.0-20200130072251-812149543c99
+	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.18.0-alpha.2.0.20200130072111-eb4ad4570127
-	k8s.io/client-go v0.0.0-20200130072523-1ae532aad6ad
+	k8s.io/client-go v0.17.2
 	k8s.io/code-generator v0.18.0-alpha.2.0.20200130061103-7dfd5e9157ef
+	k8s.io/component-base v0.17.2
 	k8s.io/gengo v0.0.0-20200114144118-36b2048a9120
 	k8s.io/klog v1.0.0
 	k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c
