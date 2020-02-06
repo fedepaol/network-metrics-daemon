@@ -71,25 +71,16 @@ func (f *fixture) newController() (*Controller, kubeinformers.SharedInformerFact
 	return c, k8sI
 }
 
-func (f *fixture) run(podName string) {
-	f.runController(podName, true, false)
-}
+type testBody func(c *Controller, k8si kubeinformers.SharedInformerFactory)
 
-func (f *fixture) runController(podName string, startInformers bool, expectError bool) {
+func (f *fixture) run(t testBody) {
 	c, k8sI := f.newController()
-	if startInformers {
-		stopCh := make(chan struct{})
-		defer close(stopCh)
-		k8sI.Start(stopCh)
-	}
 
-	err := c.podHandler(podName)
-	if !expectError && err != nil {
-		f.t.Errorf("error syncing foo: %v", err)
-	} else if expectError && err == nil {
-		f.t.Error("expected error syncing foo, got nil")
-	}
+	stopCh := make(chan struct{})
+	defer close(stopCh)
+	k8sI.Start(stopCh)
 
+	t(c, k8sI)
 }
 
 func TestPublishesMetric(t *testing.T) {
@@ -109,7 +100,46 @@ func TestPublishesMetric(t *testing.T) {
 	f.expectedMetrics = `
 	network_attachment_definition_per_pod{interface="eth0",nad="kindnet",namespace="namespace",pod="podname"} 0
 	`
-	f.run(getKey(pod, t))
+
+	f.run(func(c *Controller, k8si kubeinformers.SharedInformerFactory) {
+		c.podHandler(getKey(pod, t))
+	})
+
+	err := promtestutil.CollectAndCompare(podmetrics.NetAttachDefPerPod, strings.NewReader(metadata+f.expectedMetrics))
+	if err != nil {
+		t.Error("Failed to collect metrics", err)
+	}
+	podmetrics.NetAttachDefPerPod.Reset()
+}
+
+func TestDeletesMetric(t *testing.T) {
+	f := newFixture(t)
+	pod := newPod("podname", "namespace", `[{
+		"name": "kindnet",
+		"interface": "eth0",
+		"ips": [
+			"10.244.0.10"
+		],
+		"mac": "4a:e9:0b:e2:63:67",
+		"default": true,
+		"dns": {}
+	}]`)
+	f.podsLister = append(f.podsLister, pod)
+	f.kubeobjects = append(f.kubeobjects, pod)
+	f.expectedMetrics = `
+	`
+
+	f.run(func(c *Controller, k8si kubeinformers.SharedInformerFactory) {
+		// send pod, then make it disappear simulating a delete
+		c.podHandler(getKey(pod, t))
+		f.podsLister = []*v1.Pod{}
+		f.kubeobjects = []runtime.Object{}
+		indxr := k8si.Core().V1().Pods().Informer().GetIndexer()
+		for _, p := range indxr.List() {
+			indxr.Delete(p)
+		}
+		c.podHandler(getKey(pod, t))
+	})
 
 	err := promtestutil.CollectAndCompare(podmetrics.NetAttachDefPerPod, strings.NewReader(metadata+f.expectedMetrics))
 	if err != nil {
