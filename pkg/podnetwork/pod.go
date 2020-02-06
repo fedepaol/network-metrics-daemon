@@ -39,13 +39,13 @@ type Network struct {
 // from the network status annotation of the given pod.
 func Get(pod *corev1.Pod) ([]Network, error) {
 	annotation, ok := pod.GetAnnotations()[Status]
-	if !ok {
+	if !ok || annotation == "" {
 		return make([]Network, 0), nil
 	}
 
 	var statuses []status
 	if err := json.Unmarshal([]byte(annotation), &statuses); err != nil {
-		return nil, fmt.Errorf("Failed to parse network status annotation for pod %s %v", pod.Name, err)
+		return nil, fmt.Errorf("Failed to parse network status annotation for pod %s %v - [%s]", pod.Name, err, annotation)
 	}
 
 	res := make([]Network, len(statuses))

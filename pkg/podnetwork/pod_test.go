@@ -39,6 +39,8 @@ const multipleNetworkAnnotation = `[{
 	"dns": {}
 }]`
 
+const noAnnotation = ""
+
 var podNetworkTests = []struct {
 	testName string
 	pod      *corev1.Pod
@@ -81,6 +83,18 @@ var podNetworkTests = []struct {
 				NetworkName: "macvlan-conf",
 			},
 		},
+	},
+	{"nonetwork",
+		&corev1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      "NoNetworkPodName",
+				Namespace: "NoNetworkPodNamespace",
+				Annotations: map[string]string{
+					podnetwork.Status: noAnnotation,
+				},
+			},
+		},
+		[]podnetwork.Network{},
 	},
 }
 
