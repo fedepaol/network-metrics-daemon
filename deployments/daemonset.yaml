@@ -24,7 +24,7 @@ spec:
         - operator: Exists
       containers:
         - name: network-metrics-daemon
-          image: quay.io/fpaoline/network-metrics-daemon:v0.1
+          image: quay.io/fpaoline/network-metrics-daemon:v0.2
           command:
             - /usr/bin/network-metrics
           imagePullPolicy: IfNotPresent

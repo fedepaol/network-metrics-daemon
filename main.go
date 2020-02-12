@@ -19,6 +19,7 @@ package main
 import (
 	"flag"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/openshift/network-metrics/pkg/controller"
@@ -61,7 +62,8 @@ func main() {
 
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, time.Second*30)
 
-	ctrl := controller.New(kubeClient, kubeInformerFactory.Core().V1().Pods())
+	localNode := os.Getenv("NODE_NAME")
+	ctrl := controller.New(kubeClient, kubeInformerFactory.Core().V1().Pods(), localNode)
 	serveNetworkMetrics(":9091")
 
 	// notice that there is no need to run Start methods in a separate goroutine. (i.e. go kubeInformerFactory.Start(stopCh)

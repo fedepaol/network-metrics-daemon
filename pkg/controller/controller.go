@@ -43,7 +43,8 @@ type Controller struct {
 // NewController returns a new sample controller
 func New(
 	kubeclientset kubernetes.Interface,
-	podsInformer coreinformers.PodInformer) *Controller {
+	podsInformer coreinformers.PodInformer,
+	localNode string) *Controller {
 
 	controller := &Controller{
 		kubeclientset: kubeclientset,
@@ -53,20 +54,36 @@ func New(
 		workqueue:  workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Pods"),
 	}
 
+	klog.Info("Node name: ", localNode)
 	klog.Info("Setting up event handlers")
 
-	// TODO check if can be done only for the current node
 	podsInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: controller.enqueuePod,
+		AddFunc: func(obj interface{}) {
+			pod := obj.(*v1.Pod)
+			if pod.Spec.NodeName != localNode {
+				return
+			}
+			controller.enqueuePod(pod)
+
+		},
 		UpdateFunc: func(old, new interface{}) {
 			newPod := new.(*v1.Pod)
 			oldPod := old.(*v1.Pod)
+			if newPod.Spec.NodeName != localNode {
+				return
+			}
 			if newPod.Annotations[podnetwork.Status] == oldPod.Annotations[podnetwork.Status] {
 				return
 			}
 			controller.enqueuePod(new)
 		},
-		DeleteFunc: controller.enqueuePod,
+		DeleteFunc: func(obj interface{}) {
+			pod := obj.(*v1.Pod)
+			if pod.Spec.NodeName != localNode {
+				return
+			}
+			controller.enqueuePod(obj)
+		},
 	})
 
 	return controller

@@ -3,20 +3,23 @@ module github.com/openshift/network-metrics
 go 1.13
 
 require (
-	cloud.google.com/go v0.38.0
+	cloud.google.com/go v0.49.0
 	github.com/BurntSushi/toml v0.3.1
-	github.com/NYTimes/gziphandler v0.0.0-20170623195520-56545f4a5d46
+	github.com/NYTimes/gziphandler v1.1.1
 	github.com/PuerkitoBio/purell v1.1.1
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578
+	github.com/ajeddeloh/go-json v0.0.0-20170920214419-6a2fe990e083 // indirect
 	github.com/client9/misspell v0.3.4
+	github.com/coreos/ignition v0.35.0 // indirect
+	github.com/coreos/prometheus-operator v0.36.0 // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/docker/spdystream v0.0.0-20160310174837-449fdfce4d96
 	github.com/elazarl/goproxy v0.0.0-20180725130230-947c36da3153
 	github.com/emicklei/go-restful v2.9.5+incompatible
-	github.com/evanphx/json-patch v4.2.0+incompatible
+	github.com/evanphx/json-patch v4.5.0+incompatible
 	github.com/fsnotify/fsnotify v1.4.7
-	github.com/ghodss/yaml v0.0.0-20150909031657-73d445a93680
+	github.com/ghodss/yaml v1.0.0
 	github.com/go-logr/logr v0.1.0
 	github.com/go-openapi/jsonpointer v0.19.3
 	github.com/go-openapi/jsonreference v0.19.3
@@ -24,23 +27,23 @@ require (
 	github.com/go-openapi/swag v0.19.5
 	github.com/gogo/protobuf v1.3.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/groupcache v0.0.0-20160516000752-02826c3e7903
-	github.com/golang/mock v1.2.0
+	github.com/golang/groupcache v0.0.0-20191027212112-611e8accdfc9
+	github.com/golang/mock v1.3.1
 	github.com/golang/protobuf v1.3.2
 	github.com/google/btree v1.0.0
 	github.com/google/go-cmp v0.4.0
 	github.com/google/gofuzz v1.1.0
 	github.com/google/martian v2.1.0+incompatible
-	github.com/google/pprof v0.0.0-20181206194817-3ea8567a2e57
+	github.com/google/pprof v0.0.0-20190723021845-34ac40c74b70
 	github.com/google/uuid v1.1.1
-	github.com/googleapis/gnostic v0.1.0
-	github.com/gophercloud/gophercloud v0.1.0
+	github.com/googleapis/gnostic v0.3.1
+	github.com/gophercloud/gophercloud v0.6.0
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7
-	github.com/hashicorp/golang-lru v0.5.1
+	github.com/hashicorp/golang-lru v0.5.3
 	github.com/hpcloud/tail v1.0.0
-	github.com/imdario/mergo v0.3.5
+	github.com/imdario/mergo v0.3.8
 	github.com/json-iterator/go v1.1.9
-	github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024
+	github.com/jstemmer/go-junit-report v0.9.1
 	github.com/kisielk/errcheck v1.2.0
 	github.com/kisielk/gotool v1.0.0
 	github.com/kr/pretty v0.1.0
@@ -51,8 +54,9 @@ require (
 	github.com/modern-go/reflect2 v1.0.1
 	github.com/munnerz/goautoneg v0.0.0-20120707110453-a547fc61f48d
 	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f
-	github.com/onsi/ginkgo v1.11.0
-	github.com/onsi/gomega v1.7.0
+	github.com/onsi/ginkgo v1.12.0
+	github.com/onsi/gomega v1.7.1
+	github.com/openshift-kni/cnf-features-deploy v0.0.0-20200210154242-fd037d523227
 	github.com/peterbourgon/diskv v2.0.1+incompatible
 	github.com/pmezard/go-difflib v1.0.0
 	github.com/prometheus/client_golang v1.4.0
@@ -60,37 +64,38 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/objx v0.2.0
 	github.com/stretchr/testify v1.4.0
-	go.opencensus.io v0.21.0
-	golang.org/x/crypto v0.0.0-20190820162420-60c769a6c586
-	golang.org/x/exp v0.0.0-20190121172915-509febef88a4
-	golang.org/x/lint v0.0.0-20190301231843-5614ed5bae6f
-	golang.org/x/net v0.0.0-20191004110552-13f9640d40b9
-	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
+	go.opencensus.io v0.22.2
+	go4.org v0.0.0-20200104003542-c7e774b10ea0 // indirect
+	golang.org/x/crypto v0.0.0-20200109152110-61a87790db17
+	golang.org/x/exp v0.0.0-20191030013958-a1ab85dbe136
+	golang.org/x/lint v0.0.0-20190930215403-16217165b5de
+	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	golang.org/x/sys v0.0.0-20200122134326-e047566fdf82
 	golang.org/x/text v0.3.2
-	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
-	golang.org/x/tools v0.0.0-20190920225731-5eefd052ad72
+	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
+	golang.org/x/tools v0.0.0-20191115202509-3a792d9c32b2
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543
-	google.golang.org/api v0.4.0
-	google.golang.org/appengine v1.5.0
-	google.golang.org/genproto v0.0.0-20190418145605-e7d98fc518a7
-	google.golang.org/grpc v1.19.0
+	google.golang.org/api v0.14.0
+	google.golang.org/appengine v1.6.5
+	google.golang.org/genproto v0.0.0-20191115194625-c23dd37a84c9
+	google.golang.org/grpc v1.25.1
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15
 	gopkg.in/fsnotify.v1 v1.4.7
 	gopkg.in/inf.v0 v0.9.1
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
 	gopkg.in/yaml.v2 v2.2.8
-	honnef.co/go/tools v0.0.0-20190106161140-3f1c8253044a
+	honnef.co/go/tools v0.0.1-2019.2.3
 	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.18.0-alpha.2.0.20200130072111-eb4ad4570127
-	k8s.io/client-go v0.17.2
+	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/code-generator v0.18.0-alpha.2.0.20200130061103-7dfd5e9157ef
 	k8s.io/component-base v0.17.2
 	k8s.io/gengo v0.0.0-20200114144118-36b2048a9120
 	k8s.io/klog v1.0.0
 	k8s.io/kube-openapi v0.0.0-20200121204235-bf4fb3bd569c
-	k8s.io/utils v0.0.0-20191217005138-9e5e9d854fcc
+	k8s.io/utils v0.0.0-20200109141947-94aeca20bf09
 	knative.dev/pkg v0.0.0-20200204014530-7ddd3b6a42f6
 	sigs.k8s.io/yaml v1.1.0
 )
