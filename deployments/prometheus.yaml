@@ -10,11 +10,15 @@ spec:
   endpoints:
     - interval: 10s
       port: metrics
-  relabelings:
-    - sourceLabels: [__meta_kubernetes_pod_name]
-      targetLabel: sourcepod
-    - sourceLabels: [__meta_kubernetes_namespace]
-      targetLabel: sourcenamespace
+      metricRelabelings:
+        - sourceLabels: [pod]
+          targetLabel: sourcepod
+        - sourceLabels: [namespace]
+          targetLabel: sourcenamespace
+        - sourceLabels: [podm]
+          targetLabel: pod
+        - sourceLabels: [namespacem]
+          targetLabel: namespace
   selector:
     matchLabels:
       service: network-metrics-service
@@ -72,7 +76,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: prometheus-k8s
-    namespace: openshift-monitoring
+    namespace: monitoring
 ---
 apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
@@ -85,4 +89,23 @@ spec:
   serviceMonitorSelector:
     matchLabels:
       name: monitor-network
+  ruleSelector:
+    matchLabels:
+      app: network-metrics
   version: v1.3.0
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: network-metrics-with-nad
+  namespace: monitoring
+  labels:
+    app: network-metrics
+    prometheus: k8s
+    role: alert-rules
+spec:
+  groups:
+    - name: groupname
+      rules:
+        - record: container_network_transmit_bytes_with_interface
+          expr: (container_network_transmit_bytes_total) + on(namespace,pod,interface) group_left(nad) ( network_attachment_definition_per_pod )
